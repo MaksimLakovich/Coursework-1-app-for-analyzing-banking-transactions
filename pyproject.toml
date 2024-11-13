@@ -18,6 +18,15 @@ pytest = "^8.3.3"
 pytest-cov = "^6.0.0"
 
 
+[tool.coverage.report]
+exclude_also = [
+#    "if __name__ == .__main__.:",
+#    "import",
+#    "from",
+#    "@abstractmethod"
+]
+
+
 [tool.poetry.group.lint.dependencies]
 flake8 = "^7.1.1"
 mypy = "^1.13.0"
