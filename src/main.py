@@ -1,5 +1,7 @@
+import pandas as pd
+
 from config import excel_file_user_operations
-from src.utils import get_cards_info, greeting, read_data_with_user_operations
+from src.utils import get_card_cashback, get_cards_info, greeting, read_data_with_user_operations
 
 if __name__ == "__main__":
 
@@ -10,10 +12,16 @@ if __name__ == "__main__":
     print(greeting())
 
     # Получение инфо по каждой карте (последние 4 цифры, общая сумма расходов)
-    total_card_expenses = get_cards_info(df_user_operations)
-    print(total_card_expenses)
-    print(type(total_card_expenses))
+    card_expenses = get_cards_info(df_user_operations)
+    print(card_expenses)
+    print(type(card_expenses))
 
-    # # Получение кешбэка
-    # total_cashback_on_cards = get_card_cashback(df_user_operations)
-    # print(total_cashback_on_cards)
+    # Получение кешбэка
+    card_cashback = get_card_cashback(df_user_operations)
+    print(card_cashback)
+    print(type(card_cashback))
+
+    # Объединение итогового DataFrame по "Номер карты" данными из card_expenses и card_cashback
+    total_card_info = pd.merge(card_expenses, card_cashback, on="Номер карты", how="left")
+    print(total_card_info)
+    print(type(total_card_info))
