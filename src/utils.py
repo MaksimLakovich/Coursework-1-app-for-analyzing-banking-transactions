@@ -6,7 +6,7 @@ import pandas as pd
 
 from logger import get_logger_user_operations
 
-# Инициализируем логгер для utils
+# Инициализирую логгер для utils
 logger = get_logger_user_operations(__name__)
 
 
@@ -50,3 +50,32 @@ def greeting() -> str:
     else:
         logger.info("Определено приветствие как 'Доброй ночи'")
         return "Доброй ночи"
+
+
+def get_cards_info(input_data: pd.DataFrame) -> pd.DataFrame:
+    """Функция возвращает набор данных по каждой карте: последние 4 цифры карты, общая сумма расходов.
+    :param input_data: Данные в формате DataFrame переданные из функции read_data_with_user_operations().
+    :return: Данные в формате DataFrame."""
+
+    # Сразу сортирую данные оставляя только успешные расходные операции
+    logger.debug("Сортировка операций пользователя")
+    sorted_data = input_data.loc[(input_data["Статус"] == "OK") & (input_data["Сумма платежа"] < 0)]
+    # Группирую данные по номерам карт и суммирую расходы по ним.
+    # Оставляю индекс в виде столбца (as_index=False), чтобы итогом был DataFrame на выходе.
+    # Если этого не сделать, то "groupby" вернет Series, а не DataFrame.
+    logger.debug("Группировка и суммирование операций пользователя")
+    total_card_expenses = (
+        sorted_data.groupby(by="Номер карты", sort=True, dropna=True, as_index=False)
+        .agg({"Сумма платежа": "sum"})  # Применяю sum к "Сумма платежа", если сделать через agg(), то будет DataFrame
+        .rename(columns={"Сумма платежа": "Сумма расходов"})  # Переименовываю колонку для читаемости
+    )
+    logger.debug("DataFrame успешно создан и возвращен для использования в других функциях")
+    return total_card_expenses
+
+
+# def get_card_cashback(input_data):
+#     """Func"""
+#
+#     for index, row in sorted_data.iterrows():
+#
+#     return cashback
