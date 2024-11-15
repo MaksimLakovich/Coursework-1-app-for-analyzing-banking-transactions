@@ -5,7 +5,13 @@ import pandas as pd
 import pandas.testing as pdt  # Импортирую функцию pd.testing для сравнения 2-х DataFrame (будет вместо assert)
 import pytest
 
-from src.utils import get_card_cashback, get_cards_info, greeting, read_data_with_user_operations
+from src.utils import (
+    filter_top_transactions,
+    get_card_cashback,
+    get_cards_info,
+    greeting,
+    read_data_with_user_operations,
+)
 
 
 @patch("pandas.read_excel")
@@ -101,3 +107,19 @@ def test_get_card_cashback_successful(fixture_operations_data: pd.DataFrame, exp
     expected_df = pd.DataFrame(expected_data)
     result = get_card_cashback(fixture_operations_data)
     pdt.assert_frame_equal(result, expected_df)
+
+
+def test_filter_top_transactions_successful(fixture_operations_data: pd.DataFrame) -> None:
+    """Тест для filter_top_transactions() с проверкой корректного выбора топ-5 транзакций."""
+
+    expected_data = pd.DataFrame(
+        {
+            "Дата платежа": ["2023-01-01", "2023-01-01", "2023-01-01"],
+            "Сумма платежа": [-1000.0, -500.0, -200.0],
+            "Категория": ["Транспорт", "Рестораны", "Супермаркеты"],
+            "Описание": ["Поездка", "Ресторан", "Магазин"],
+        }
+    )
+
+    result = filter_top_transactions(fixture_operations_data)
+    pdt.assert_frame_equal(result, expected_data)
