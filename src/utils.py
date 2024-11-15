@@ -65,6 +65,8 @@ def get_cards_info(input_data: pd.DataFrame) -> pd.DataFrame:
     # Если этого не сделать, то "groupby" вернет Series, а не DataFrame.
     logger.debug("Группировка и суммирование операций пользователя")
     card_expenses = (
+        # dropna=True это исключить значения с NaN (можно явно не прописывать, так как по умолчанию True.
+        # Например, ниже в функции get_card_cashback() я это явно уже не указываю (результат тот же).
         sorted_data.groupby(by="Номер карты", sort=True, dropna=True, as_index=False)
         .agg({"Сумма платежа": "sum"})  # Применяю sum к "Сумма платежа", если сделать через agg(), то будет DataFrame
         .rename(columns={"Сумма платежа": "Сумма расходов"})  # Переименовываю колонку для читаемости
@@ -123,3 +125,17 @@ def get_card_cashback(input_data: pd.DataFrame) -> pd.DataFrame:
 #     )
 #     logger.debug("Кэшбэк успешно рассчитан и возвращен для каждой карты")
 #     return card_cashback
+
+
+def filter_top_transactions(input_data: pd.DataFrame) -> pd.DataFrame:
+    """Функция возвращает данные топ-5 транзакций по "Сумма платежа".
+    :param input_data: Данные в формате DataFrame переданные из функции read_data_with_user_operations().
+    :return: Данные в формате DataFrame с колонками: "Дата платежа", "Сумма платежа", "Категория", "Описание"."""
+
+    logger.debug("Начало фильтрации операций для определения топ-5 транзакций")
+    filtered_data = input_data.loc[(input_data["Статус"] == "OK") & (input_data["Сумма платежа"] < 0)].copy()
+    sorted_data = filtered_data.sort_values(by="Сумма платежа", axis=0, ascending=True)
+    # Фильтрую операции без NaN в "Номер карты"с помощью notnull() и вывожу первые 5 с помощью head()
+    top_5_data = sorted_data.loc[sorted_data["Номер карты"].notnull()].head(5)
+    logger.debug("Топ-5 транзакций успешно определены и возвращены")
+    return top_5_data[["Дата платежа", "Сумма платежа", "Категория", "Описание"]]

@@ -1,7 +1,13 @@
 import pandas as pd
 
 from config import excel_file_user_operations
-from src.utils import get_card_cashback, get_cards_info, greeting, read_data_with_user_operations
+from src.utils import (
+    filter_top_transactions,
+    get_card_cashback,
+    get_cards_info,
+    greeting,
+    read_data_with_user_operations,
+)
 
 if __name__ == "__main__":
 
@@ -25,3 +31,8 @@ if __name__ == "__main__":
     total_card_info = pd.merge(card_expenses, card_cashback, on="Номер карты", how="left")
     print(total_card_info)
     print(type(total_card_info))
+
+    # Получение топ-5 транзакций по сумме платежа
+    top_operations = filter_top_transactions(df_user_operations)
+    print(top_operations)
+    print(type(top_operations))
