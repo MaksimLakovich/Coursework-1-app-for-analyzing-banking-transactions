@@ -5,7 +5,7 @@ import pandas as pd
 import pandas.testing as pdt  # Импортирую функцию pd.testing для сравнения 2-х DataFrame (будет вместо assert)
 import pytest
 
-from src.utils import greeting, read_data_with_user_operations
+from src.utils import get_card_cashback, get_cards_info, greeting, read_data_with_user_operations
 
 
 @patch("pandas.read_excel")
@@ -67,3 +67,37 @@ def test_greeting(mocked_time: MagicMock, expected_greeting: str) -> None:
     with patch("datetime.datetime") as mock_datetime_datetime:
         mock_datetime_datetime.now.return_value = mocked_time
         assert greeting() == expected_greeting
+
+
+@pytest.mark.parametrize(
+    "expected_data",
+    (
+        {
+            "Номер карты": ["*1234", "*5678"],
+            "Сумма расходов": [-1500.0, -200.0],
+        },
+    ),
+)
+def test_get_cards_info_successful(fixture_operations_data: pd.DataFrame, expected_data: pd.DataFrame) -> None:
+    """Тест для get_cards_info() проверяющий суммирование расходов и группировку по каждой карте."""
+
+    expected_df = pd.DataFrame(expected_data)  # Нельзя в parametrize сразу передать DataFrame (делаю преобразование)
+    result = get_cards_info(fixture_operations_data)
+    pdt.assert_frame_equal(result, expected_df)
+
+
+@pytest.mark.parametrize(
+    "expected_data",
+    (
+        {
+            "Номер карты": ["*1234", "*5678"],
+            "Рассчитанный кэшбэк": [60.0, 2.0],
+        },
+    ),
+)
+def test_get_card_cashback_successful(fixture_operations_data: pd.DataFrame, expected_data: pd.DataFrame) -> None:
+    """Тест для get_card_cashback() проверяющий расчет кэшбэка по каждой карте."""
+
+    expected_df = pd.DataFrame(expected_data)
+    result = get_card_cashback(fixture_operations_data)
+    pdt.assert_frame_equal(result, expected_df)
