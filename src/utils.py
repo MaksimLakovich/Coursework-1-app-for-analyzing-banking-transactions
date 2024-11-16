@@ -222,3 +222,25 @@ def filter_exchange_rates_from_user_settings(user_settings: dict) -> list:
 
     logger.debug("Запросы к API завершены")
     return total_result
+
+
+# def filter_stock_from_user_settings(user_settings: dict) -> list:
+#     """Функция принимает данные пользовательских настроек для акций из S&P500 и возвращает их текущий стоимость.
+#     :param: Перечень акций, которые указаны в пользовательских настройках ("user_stocks").
+#     :return: Стоимость акций. Пример: "stock_prices": [{"stock": "AAPL", "price": 150.12}]."""
+#
+#     # Загружаю ключ-api из ".env" через dotenv
+#     logger.debug("Загрузка API ключа из .env файла")
+#     load_dotenv()
+#     api_key = os.getenv("API_KEY_STOCK_PRICES")
+#     if not api_key:
+#         logger.error("API_KEY_STOCK_PRICES не найден в переменных окружения.env")
+#         raise ValueError("API_KEY_STOCK_PRICES не найден в переменных окружения.env")
+#
+#     # Читаем из user_settings акции по которым необходимо определить стоимость:
+#     logger.debug("Получение списка интересующих акций из пользовательских настроек")
+#     stock_list = user_settings.get("user_stocks", [])
+#
+#     # Формирую запросы к API и собираю результаты
+#     logger.debug("Начало запросов к API для получения стоимости акций")
+#     total_result = []

@@ -48,3 +48,9 @@ def fixture_operations_data() -> pd.DataFrame:
             "Сумма операции с округлением": [1000.0, 500.0, 200.0],
         }
     )
+
+
+@pytest.fixture
+def fixture_user_settings() -> dict:
+    """Фикстура с пользовательскими настройками из JSON-файла."""
+    return {"user_currencies": ["USD", "EUR"], "user_stocks": ["AAPL", "AMZN", "GOOGL"]}

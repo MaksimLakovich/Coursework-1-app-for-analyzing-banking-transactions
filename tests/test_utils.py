@@ -1,16 +1,18 @@
 from datetime import datetime
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, mock_open, patch
 
 import pandas as pd
 import pandas.testing as pdt  # Импортирую функцию pd.testing для сравнения 2-х DataFrame (будет вместо assert)
 import pytest
 
 from src.utils import (
+    filter_exchange_rates_from_user_settings,
     filter_top_transactions,
     get_card_cashback,
     get_cards_info,
     greeting,
     read_data_with_user_operations,
+    read_user_settings_for_exchange_rates_and_stock,
 )
 
 
@@ -123,3 +125,67 @@ def test_filter_top_transactions_successful(fixture_operations_data: pd.DataFram
 
     result = filter_top_transactions(fixture_operations_data)
     pdt.assert_frame_equal(result, expected_data)
+
+
+@pytest.mark.parametrize(
+    "mock_data, expected_settings",
+    [
+        (
+            # Первый параметр (mock_data) — это строка, как бы представляющая на вход содержимое JSON-файла.
+            '{"user_currencies": ["USD", "EUR"], "user_stocks": ["AAPL", "AMZN", "GOOGL"]}',
+            # Второй параметр (expected_settings) — это ожидаемый результат функции.
+            {"user_currencies": ["USD", "EUR"], "user_stocks": ["AAPL", "AMZN", "GOOGL"]},
+        ),
+        (
+            '{"user_currencies": ["GBP"], "user_stocks": ["TSLA", "MSFT"]}',
+            {"user_currencies": ["GBP"], "user_stocks": ["TSLA", "MSFT"]},
+        ),
+    ],
+)
+def test_read_user_settings_successful(mock_data: MagicMock, expected_settings: dict) -> None:
+    """Тест успешного чтения пользовательских настроек из JSON."""
+
+    with patch("builtins.open", mock_open(read_data=mock_data)):
+        result = read_user_settings_for_exchange_rates_and_stock("some_path_to/operations.xlsx")
+        assert result == expected_settings
+
+
+def test_read_user_settings_file_not_found() -> None:
+    """Тест обработки ситуации, когда JSON-файл не найден и возвращаю данные установленные по умолчанию."""
+
+    with patch("builtins.open", side_effect=FileNotFoundError):
+        result = read_user_settings_for_exchange_rates_and_stock("fake_path/user_settings.json")
+        expected_settings = {"user_currencies": ["USD"], "user_stocks": ["AAPL", "GOOGL"]}
+        assert result == expected_settings
+
+
+def test_filter_exchange_rates_successful(fixture_user_settings: dict) -> None:
+    """Тест успешного получения курсов валют из API."""
+
+    # Определяю результаты для каждой валюты
+    mock_responses = [
+        {"result": 99.872647},  # Ответ для USD
+        {"result": 105.311966},  # Ответ для EUR
+    ]
+    # Замокать requests.request, чтобы он возвращал заранее определённый результат
+    with patch("requests.request") as mock_request:
+        # Настраиваю side_effect, чтобы каждый вызов возвращал объект с json()
+        mock_request.side_effect = [
+            MagicMock(status_code=200, json=MagicMock(return_value=response)) for response in mock_responses
+        ]
+
+        result = filter_exchange_rates_from_user_settings(fixture_user_settings)
+        expected_result = [
+            {"currency": "USD", "rate": 99.872647},
+            {"currency": "EUR", "rate": 105.311966},
+        ]
+        assert result == expected_result
+
+
+def test_filter_exchange_rates_api_key_not_found(fixture_user_settings: dict) -> None:
+    """Тест, проверяющий поведение при отсутствии API ключа."""
+
+    # Патчу os.getenv указывая как бы что он возвращает отсутствие ключа
+    with patch("src.utils.os.getenv", return_value=None):
+        with pytest.raises(ValueError, match="API_KEY_EXCHANGE_RATES не найден в переменных окружения.env"):
+            filter_exchange_rates_from_user_settings(fixture_user_settings)
