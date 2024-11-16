@@ -1,8 +1,12 @@
 import datetime
+import json
+import os
 from pathlib import Path
-from typing import Union
+from typing import Any, Dict, Union
 
 import pandas as pd
+import requests
+from dotenv import load_dotenv
 
 from logger import get_logger_user_operations
 
@@ -139,3 +143,82 @@ def filter_top_transactions(input_data: pd.DataFrame) -> pd.DataFrame:
     top_5_data = sorted_data.loc[sorted_data["Номер карты"].notnull()].head(5)
     logger.debug("Топ-5 транзакций успешно определены и возвращены")
     return top_5_data[["Дата платежа", "Сумма платежа", "Категория", "Описание"]]
+
+
+def read_user_settings_for_exchange_rates_and_stock(path_to_file: Union[str, Path]) -> Dict[str, Any]:
+    """Функция считывает из json-файла настройки пользователя для отображения валют и акций на веб-страницах.
+    :param path_to_file: Путь к json-файлу.
+    :return: Данные настроек пользователя в формате dict.
+    Если пользовательских настроек не существует, то возвращаю данные по умолчанию."""
+
+    try:
+        logger.debug("Начато открытие и считывание json-файла с пользовательскими настройками")
+        with open(path_to_file) as json_data:
+            user_settings: Dict[str, Any] = json.load(json_data)
+            logger.debug("Пользовательские настройки считаны и успешно возвращены")
+            return user_settings
+
+    except FileNotFoundError as e:
+        logger.error(f"Файл с json-данными не найден: {path_to_file}. {e}")
+
+    # Возвращаю данные по умолчанию при отсутствии пользовательских настроек
+    logger.debug("Пользовательские настройки отсутствуют (переданы данные считающиеся принятыми по умолчанию)")
+    return dict(
+        {
+            "user_currencies": [
+                "USD",
+            ],
+            "user_stocks": [
+                "AAPL",
+                "GOOGL",
+            ],
+        }
+    )
+
+
+def filter_exchange_rates_from_user_settings(user_settings: dict) -> list:
+    """Функция принимает данные пользовательских настроек для валют и возвращает текущий курс по ним.
+    :param: Перечень валют, которые указаны в пользовательских настройках ("user_currencies").
+    :return: Курсы валют по интересующим валютам. Пример: "currency_rates": [{"currency": "USD", "rate": 73.21}]."""
+
+    # Загружаю ключ-api из ".env" через dotenv
+    logger.debug("Загрузка API ключа из .env файла")
+    load_dotenv()
+    api_key = os.getenv("API_KEY_EXCHANGE_RATES")
+    if not api_key:
+        logger.error("API_KEY_EXCHANGE_RATES не найден в переменных окружения.env")
+        raise ValueError("API_KEY_EXCHANGE_RATES не найден в переменных окружения.env")
+
+    # Читаем из user_settings валюты по которым необходимо определить курс:
+    logger.debug("Получение списка интересующих валют из пользовательских настроек")
+    currencies_list = user_settings.get("user_currencies", [])
+
+    # Формирую запросы к API и собираю результаты
+    logger.debug("Начало запросов к API для получения курса валют")
+    total_result = []
+
+    for currency in currencies_list:
+        try:
+            url = "https://api.apilayer.com/exchangerates_data/convert"
+            payload = {
+                "amount": 1,
+                "from": currency,
+                "to": "RUB",
+            }
+            headers = {"apikey": api_key}
+            response = requests.request("GET", url, headers=headers, params=payload)
+            if response.status_code != 200:
+                logger.error(f"Ошибка при запросе для валюты {currency}: {response.text}")
+                continue
+            response_result = response.json()
+            currency_rate = response_result.get("result")
+            if currency_rate:
+                total_result.append({"currency": currency, "rate": currency_rate})
+                logger.debug(f"Получен и добавлен курс для {currency}: {currency_rate}")
+            else:
+                logger.warning(f"Не удалось получить курс для {currency}: {response_result}")
+        except requests.RequestException as e:
+            logger.error(f"Ошибка при запросе API для валюты {currency}: {e}")
+
+    logger.debug("Запросы к API завершены")
+    return total_result

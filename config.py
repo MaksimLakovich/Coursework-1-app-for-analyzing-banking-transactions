@@ -21,3 +21,8 @@ def initialize_directories() -> None:
 # Определение пути к Excel-файлу c БАНКОВСКИМИ ТРАНЗАКЦИЯМИ, который размещается в проекте в директории (../data/)
 DATA_DIR = BASE_DIR / "data"
 excel_file_user_operations = DATA_DIR / "operations.xlsx"
+
+
+# Определение пути к JSON-файлу c настройками пользователя, который размещается в проекте в директории (../data/)
+DATA_DIR = BASE_DIR / "data"
+json_file_user_settings = DATA_DIR / "user_settings.json"
