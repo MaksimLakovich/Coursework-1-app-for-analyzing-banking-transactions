@@ -47,6 +47,7 @@
    - `filter_top_transactions()` - функция возвращает данные топ-5 транзакций по параметру "Сумма платежа". Данные в формате DataFrame с колонками: "Дата платежа", "Сумма платежа", "Категория", "Описание".
    - `read_user_settings_for_exchange_rates_and_stock()` - функция считывает из json-файла настройки пользователя для отображения валют и акций на веб-страницах. Если пользовательских настроек не существует, то возвращаю данные по умолчанию.
    - `filter_exchange_rates_from_user_settings()` - функция принимает данные пользовательских настроек для валют и возвращает текущий курс по ним.
+   - `filter_stock_from_user_settings()` - функция принимает данные пользовательских настроек для акций из S&P500 и возвращает их текущий стоимость.
 
 
 ### <a id="title3">3. Установка проекта</a>
@@ -66,8 +67,9 @@ poetry install
 2. Замените значения переменных своими реальными данными.
 3. Файл .env должен содержать данные для следующих ресурсов:
    - для конвертации используется Exchange Rates Data API: https://apilayer.com/exchangerates_data-api
-   API_KEY_EXCHANGE_RATES=your_api_key_here.
-   - для
+     - API_KEY_EXCHANGE_RATES=your_api_key_here.
+   - для получения стоимости акций Marketstack API: https://marketstack.com/documentation
+     - API_KEY_STOCK_PRICES=your_api_key_here.
 
 
 
