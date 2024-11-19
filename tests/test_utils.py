@@ -7,6 +7,7 @@ import pytest
 
 from src.utils import (
     filter_exchange_rates_from_user_settings,
+    filter_stock_from_user_settings,
     filter_top_transactions,
     get_card_cashback,
     get_cards_info,
@@ -189,3 +190,37 @@ def test_filter_exchange_rates_api_key_not_found(fixture_user_settings: dict) ->
     with patch("src.utils.os.getenv", return_value=None):
         with pytest.raises(ValueError, match="API_KEY_EXCHANGE_RATES не найден в переменных окружения.env"):
             filter_exchange_rates_from_user_settings(fixture_user_settings)
+
+
+def test_filter_stock_prices_successful(fixture_user_settings: dict) -> None:
+    """Тест успешного получения цены акций по API."""
+
+    # Определяю результаты для каждой акции
+    mock_responses = [
+        {"data": [{"last": 228.31}]},  # Ответ для AAPL
+        {"data": [{"last": 1055.50}]},  # Ответ для AMZN
+        {"data": [{"last": 2050}]},  # Ответ для GOOGL
+    ]
+    # Замокать requests.request, чтобы он возвращал заранее определённый результат
+    with patch("requests.get") as mock_get:
+        # Настраиваю side_effect, чтобы каждый вызов возвращал объект с json()
+        mock_get.side_effect = [
+            MagicMock(status_code=200, json=MagicMock(return_value=response)) for response in mock_responses
+        ]
+
+        result = filter_stock_from_user_settings(fixture_user_settings)
+        expected_result = [
+            {"stock": "AAPL", "price": 228.31},
+            {"stock": "AMZN", "price": 1055.50},
+            {"stock": "GOOGL", "price": 2050},
+        ]
+        assert result == expected_result
+
+
+def test_filter_stock_prices_api_key_not_found(fixture_user_settings: dict) -> None:
+    """Тест, проверяющий поведение при отсутствии API ключа."""
+
+    # Патчу os.getenv указывая как бы что он возвращает отсутствие ключа
+    with patch("src.utils.os.getenv", return_value=None):
+        with pytest.raises(ValueError, match="API_KEY_STOCK_PRICES не найден в переменных окружения.env"):
+            filter_stock_from_user_settings(fixture_user_settings)
