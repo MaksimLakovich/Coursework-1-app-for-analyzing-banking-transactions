@@ -3,6 +3,7 @@ import pandas as pd
 from config import excel_file_user_operations, json_file_user_settings
 from src.utils import (
     filter_exchange_rates_from_user_settings,
+    filter_stock_from_user_settings,
     filter_top_transactions,
     get_card_cashback,
     get_cards_info,
@@ -48,3 +49,8 @@ if __name__ == "__main__":
     currency_rates = filter_exchange_rates_from_user_settings(user_settings)
     print(currency_rates)
     print(type(currency_rates))
+
+    # Запрос по API данных о стоимости акций из S&P500, которые указаны в пользовательских настройках
+    stock_prices = filter_stock_from_user_settings(user_settings)
+    print(stock_prices)
+    print(type(stock_prices))
