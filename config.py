@@ -7,7 +7,8 @@ BASE_DIR = Path(__file__).resolve().parent
 
 # Определение пути к директории куда будут записываться логи приложения (../logs/) и определение имени файла для логов
 LOGS_DIR = BASE_DIR / "logs"
-log_file = LOGS_DIR / "utils.log"
+log_utils_file = LOGS_DIR / "utils.log"
+log_views_file = LOGS_DIR / "views.log"
 
 
 # Чтобы создать автоматически необходимую директорию (../logs/), если ее не существует еще мы используем эту функцию.
