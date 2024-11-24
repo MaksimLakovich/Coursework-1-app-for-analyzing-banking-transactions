@@ -9,6 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent
 LOGS_DIR = BASE_DIR / "logs"
 log_utils_file = LOGS_DIR / "utils.log"
 log_views_file = LOGS_DIR / "views.log"
+log_services_file = LOGS_DIR / "services.log"
 
 
 # Чтобы создать автоматически необходимую директорию (../logs/), если ее не существует еще мы используем эту функцию.

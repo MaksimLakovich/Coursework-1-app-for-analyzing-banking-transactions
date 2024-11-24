@@ -3,7 +3,7 @@ import json
 import pandas as pd
 
 from config import excel_file_user_operations, json_file_user_settings
-from logger import get_response_for_main_page
+from logger import get_logger_response_for_main_page
 from src.utils import (
     filter_exchange_rates_from_user_settings,
     filter_stock_from_user_settings,
@@ -15,8 +15,8 @@ from src.utils import (
     read_user_settings_for_exchange_rates_and_stock,
 )
 
-# Инициализирую логгер для utils
-logger = get_response_for_main_page(__name__)
+# Инициализирую логгер для views
+logger = get_logger_response_for_main_page(__name__)
 
 
 def response_for_main_page(date: str) -> str:
