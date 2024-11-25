@@ -10,6 +10,7 @@ LOGS_DIR = BASE_DIR / "logs"
 log_utils_file = LOGS_DIR / "utils.log"
 log_views_file = LOGS_DIR / "views.log"
 log_services_file = LOGS_DIR / "services.log"
+log_reports_file = LOGS_DIR / "reports.log"
 
 
 # Чтобы создать автоматически необходимую директорию (../logs/), если ее не существует еще мы используем эту функцию.
