@@ -1,14 +1,46 @@
 import datetime as dt
-from typing import Optional
+import functools
+import json
+from typing import Any, Callable, Optional
 
 import pandas as pd
 
+from config import DATA_DIR
 from logger import get_logger_for_reports
 
 # Инициализирую логгер для reports
 logger = get_logger_for_reports(__name__)
 
 
+def save_report(file_name: Optional[str] = None) -> Callable:
+    """Декоратор для функций-отчетов, который записывает в файл результаты полученные в функциях-отчеты."""
+
+    def decorator(func: Callable) -> Callable:
+        # С помощью библиотеки functools охраняю метаданные оборачиваемой функции, чтоб потом в логгах,
+        # при использовании, например {spending_by_category.__name__} записывалось spending_by_category, а не wrapper
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            # Выполнение функции-отчета
+            result = func(*args, **kwargs)
+            # Определение имени отчета по умолчанию, если оно не задано в параметре декоратора при его использовании
+            default_file = f"report_{dt.datetime.now().strftime("%Y.%m.%d_%H:%M:%S")}.json"
+            target_file = file_name if file_name else default_file
+            # Преобразование данных для сериализации.
+            # Нужно во входящем DataFrame изменить формат "Дата платежа" из формата pandas в строку заданного формата.
+            result_dict = result.copy()
+            if "Дата платежа" in result_dict.columns:
+                result_dict["Дата платежа"] = result_dict["Дата платежа"].dt.strftime("%d.%m.%Y")
+            # Сохранение результатов отчета в заданный файл
+            with open(f"{DATA_DIR}/{target_file}", "w", encoding="utf-8") as file:
+                json.dump(result_dict.to_dict(orient="records"), file, ensure_ascii=False, indent=4)
+            return result
+
+        return wrapper
+
+    return decorator
+
+
+@save_report("report_spending_by_category.json")
 def spending_by_category(transactions: pd.DataFrame, category: str, date: Optional[str] = None) -> pd.DataFrame:
     """Функция для отчета "Траты по категории" для анализа трат пользователя.
     :param transactions: DataFrame с банковскими транзакциями.
@@ -43,4 +75,5 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: Option
         & (df_filtered_transactions["Категория"].str.lower() == category)
     ]
 
+    logger.debug(f"Возврат результата отчета {spending_by_category.__name__}")
     return df_sorted_transactions
