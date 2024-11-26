@@ -74,3 +74,19 @@ def fixture_simple_operations_data() -> pd.DataFrame:
 def fixture_user_settings() -> dict:
     """Фикстура с пользовательскими настройками из JSON-файла."""
     return {"user_currencies": ["USD", "EUR"], "user_stocks": ["AAPL", "AMZN", "GOOGL"]}
+
+
+@pytest.fixture
+def fixture_transactions_data():
+    """Фикстура с тестовыми данными транзакций для функций-отчетов в reports.py."""
+    data = pd.DataFrame(
+        {
+            "Дата платежа": ["01.01.2023", "15.12.2022", "15.11.2022"],
+            "Статус": ["OK", "OK", "OK"],
+            "Сумма платежа": [-100.0, -200.0, -50.0],
+            "Категория": ["Рестораны", "Рестораны", "Супермаркеты"],
+        }
+    )
+    # Преобразуем даты в datetime
+    data["Дата платежа"] = pd.to_datetime(data["Дата платежа"], format="%d.%m.%Y")
+    return data
