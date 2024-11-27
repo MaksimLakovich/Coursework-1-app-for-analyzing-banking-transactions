@@ -9,11 +9,23 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.12"
 requests = "^2.32.3"
+pandas = "^2.2.3"
+openpyxl = "^3.1.5"
 
 
+python-dotenv = "^1.0.1"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"
 pytest-cov = "^6.0.0"
+
+
+[tool.coverage.report]
+exclude_also = [
+#    "if __name__ == .__main__.:",
+#    "import",
+#    "from",
+#    "@abstractmethod"
+]
 
 
 [tool.poetry.group.lint.dependencies]
